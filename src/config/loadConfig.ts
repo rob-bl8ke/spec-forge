@@ -3,23 +3,13 @@ import path from "node:path";
 import { parse } from "yaml";
 import {
   type ConfigContext,
-  type GlobalConfig,
-  type ProjectConfig,
-  type ProviderName,
   type ResolvedProjectConfig,
 } from "./types";
+import { validateGlobalConfig, validateProjectConfig } from "./validateConfig";
 
 interface LoadConfigInput {
   cwd?: string;
   projectName?: string;
-}
-
-function isProviderName(value: unknown): value is ProviderName {
-  return value === "copilot" || value === "claude";
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }
 
 function normalizePath(filePath: string): string {
@@ -29,85 +19,6 @@ function normalizePath(filePath: string): string {
 async function readYamlFile(filePath: string): Promise<unknown> {
   const raw = await readFile(filePath, "utf8");
   return parse(raw);
-}
-
-function ensureString(value: unknown, field: string, filePath: string): string {
-  if (typeof value !== "string" || value.trim().length === 0) {
-    throw new Error(`Invalid config at ${normalizePath(filePath)}: ${field} must be a non-empty string.`);
-  }
-
-  return value;
-}
-
-function ensureBoolean(value: unknown, field: string, filePath: string): boolean {
-  if (typeof value !== "boolean") {
-    throw new Error(`Invalid config at ${normalizePath(filePath)}: ${field} must be a boolean.`);
-  }
-
-  return value;
-}
-
-function ensureNumber(value: unknown, field: string, filePath: string): number {
-  if (typeof value !== "number" || Number.isNaN(value)) {
-    throw new Error(`Invalid config at ${normalizePath(filePath)}: ${field} must be a number.`);
-  }
-
-  return value;
-}
-
-export function parseGlobalConfig(raw: unknown, filePath: string): GlobalConfig {
-  if (!isRecord(raw)) {
-    throw new Error(`Invalid config at ${normalizePath(filePath)}: root must be an object.`);
-  }
-
-  const provider = raw.provider;
-  if (!isRecord(provider)) {
-    throw new Error(`Invalid config at ${normalizePath(filePath)}: provider is required.`);
-  }
-
-  const active = provider.active;
-  if (!isProviderName(active)) {
-    throw new Error(
-      `Invalid config at ${normalizePath(filePath)}: provider.active must be one of copilot or claude.`,
-    );
-  }
-
-  const logging = raw.logging;
-  if (!isRecord(logging)) {
-    throw new Error(`Invalid config at ${normalizePath(filePath)}: logging is required.`);
-  }
-
-  return {
-    provider: {
-      active,
-      timeoutMs: ensureNumber(provider.timeoutMs, "provider.timeoutMs", filePath),
-    },
-    logging: {
-      level: ensureString(logging.level, "logging.level", filePath),
-      writePromptFiles: ensureBoolean(logging.writePromptFiles, "logging.writePromptFiles", filePath),
-    },
-  };
-}
-
-export function parseProjectConfig(raw: unknown, filePath: string): ProjectConfig {
-  if (!isRecord(raw)) {
-    throw new Error(`Invalid config at ${normalizePath(filePath)}: root must be an object.`);
-  }
-
-  const name = ensureString(raw.name, "name", filePath);
-  const providerRaw = raw.provider;
-
-  if (providerRaw !== undefined && !isProviderName(providerRaw)) {
-    throw new Error(
-      `Invalid config at ${normalizePath(filePath)}: provider must be one of copilot or claude when provided.`,
-    );
-  }
-
-  return {
-    ...(raw as unknown as ProjectConfig),
-    name,
-    provider: providerRaw,
-  };
 }
 
 export async function findSpecForgeRoot(startDir: string): Promise<string> {
@@ -138,7 +49,7 @@ export async function loadConfig(input: LoadConfigInput = {}): Promise<ConfigCon
 
   const globalConfigPath = path.join(rootDir, "config.yaml");
   const globalRaw = await readYamlFile(globalConfigPath);
-  const globalConfig = parseGlobalConfig(globalRaw, globalConfigPath);
+  const globalConfig = validateGlobalConfig(globalRaw, globalConfigPath);
 
   if (!input.projectName) {
     return {
@@ -160,7 +71,7 @@ export async function loadConfig(input: LoadConfigInput = {}): Promise<ConfigCon
     );
   }
 
-  const projectConfig = parseProjectConfig(projectRaw, projectConfigPath);
+  const projectConfig = await validateProjectConfig(projectRaw, projectConfigPath);
   const resolvedProvider = projectConfig.provider ?? globalConfig.provider.active;
 
   const resolvedProject: ResolvedProjectConfig = {

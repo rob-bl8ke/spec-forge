@@ -13,7 +13,7 @@ export interface GlobalConfig {
 
 export interface ProjectConfig {
   name: string;
-  repoPath?: string;
+  repoPath: string;
   provider?: ProviderName;
   workflowDefaults?: {
     defaultWorkflow?: string;
