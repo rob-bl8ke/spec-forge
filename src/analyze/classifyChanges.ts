@@ -142,7 +142,7 @@ function classifyJiraTaskImpact(fromContent: string, toContent: string): JiraTas
       taskId,
       title: toTask.title,
       reason: `Task ${taskId} is new in to-version and did not exist in from-version.`,
-      suggestedDescription: `Create Jira ticket ${taskId}: ${toTask.title}`,
+      suggestedDescription: `Create task ticket ${taskId}: ${toTask.title}`,
     });
   }
 
