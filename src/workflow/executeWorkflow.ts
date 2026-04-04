@@ -47,7 +47,6 @@ export async function executeWorkflow(
     // Step 2: Iterate through each step
     for (let i = 0; i < steps.length; i++) {
       const step = steps[i];
-      const isFirstStep = i === 0;
 
       console.log(`\n[${step.id}] Starting step...`);
 
@@ -58,7 +57,7 @@ export async function executeWorkflow(
         featureName,
         version,
         specForgeRoot,
-        isFirstStep, // Only the first step is part of the full-run workflow
+        true,
         {
           configContext,
           stepArtifacts,

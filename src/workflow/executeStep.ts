@@ -141,6 +141,7 @@ export async function executeStep(
           feature: featureName,
           stepId: step.output,
           content: providerResponse.stdout,
+          version,
         }
       : {
           mode: "step-rerun",

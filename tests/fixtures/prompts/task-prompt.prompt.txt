@@ -1,0 +1,1 @@
+Write the task prompt artifact using {{jira_task}}.

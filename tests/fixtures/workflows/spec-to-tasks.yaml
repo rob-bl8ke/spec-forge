@@ -1,0 +1,22 @@
+id: spec-to-tasks
+description: Fixture workflow for integration tests
+steps:
+  - id: requirements
+    prompt: "__REQ_PROMPT__"
+    output: requirements
+  - id: architecture
+    prompt: "__ARCH_PROMPT__"
+    input:
+      - requirements
+    output: architecture
+  - id: jira-task
+    prompt: "__JIRA_PROMPT__"
+    input:
+      - requirements
+      - architecture
+    output: jira-task
+  - id: task-prompt
+    prompt: "__TASK_PROMPT__"
+    input:
+      - jira-task
+    output: task-prompt

@@ -13,6 +13,7 @@ interface PersistFullRunStepInput extends OutputBaseInput {
   mode: "full-run";
   stepId: string;
   content: string;
+  version?: string;
 }
 
 interface PersistStepRerunInput extends OutputBaseInput {
@@ -62,7 +63,7 @@ export async function determineNextVersion(rootDir: string, project: string, fea
 
 async function resolveVersionDir(input: PersistOutputInput): Promise<{ version: string; versionDir: string }> {
   if (input.mode === "full-run") {
-    const version = await determineNextVersion(input.rootDir, input.project, input.feature);
+    const version = input.version ?? await determineNextVersion(input.rootDir, input.project, input.feature);
     const versionDir = path.join(getFeatureOutputRoot(input), version);
     await mkdir(versionDir, { recursive: true });
     return { version, versionDir };
