@@ -5,6 +5,7 @@ import { slugify } from "../utils/naming";
 import type { ConfigContext } from "../config/types";
 import { resolveProviderFromContext } from "../providers/providerFactory";
 import { runProviderCall } from "../providers/runProvider";
+import { deduplicatePattern, extractPatternTitle } from "./deduplicatePatterns";
 
 const DEFAULT_PROMPT_PATH = path.join("prompts", "harvest", "pattern-extraction.md");
 
@@ -28,6 +29,7 @@ export interface ExtractPatternsResult {
   skippedNone: number;
   invalid: number;
   providerFailures: number;
+  deduplicated: number;
 }
 
 export type ProviderInvoker = (prompt: string, context: ConfigContext) => Promise<string>;
@@ -42,12 +44,12 @@ function formatTimestamp(date: Date): string {
 }
 
 function extractTitleSlug(content: string, fallback: string): string {
-  const match = content.match(/^##\s+Title\s*\n(.+)$/im);
-  if (!match) {
+  const title = extractPatternTitle(content);
+  if (!title) {
     return fallback;
   }
 
-  const slug = slugify(match[1].trim());
+  const slug = slugify(title);
   return slug.length > 0 ? slug : fallback;
 }
 
@@ -95,6 +97,8 @@ export async function extractPatterns(
   let skippedNone = 0;
   let invalid = 0;
   let providerFailures = 0;
+  let deduplicated = 0;
+  const seenTitles = new Set<string>();
 
   for (const commit of input.commits) {
     const prompt = resolvePromptTemplateString(
@@ -130,6 +134,13 @@ export async function extractPatterns(
       continue;
     }
 
+    const dedupe = deduplicatePattern(normalized, seenTitles);
+    if (!dedupe.keep) {
+      deduplicated += 1;
+      print(`Duplicate pattern discarded for ${commit.sha}: ${dedupe.normalizedTitle}`);
+      continue;
+    }
+
     const timestamp = formatTimestamp(new Date());
     const slug = extractTitleSlug(normalized, commit.sha.slice(0, 8).toLowerCase());
     const filePath = path.join(patternDir, `${input.projectName}-${timestamp}-${slug}.md`);
@@ -144,5 +155,6 @@ export async function extractPatterns(
     skippedNone,
     invalid,
     providerFailures,
+    deduplicated,
   };
 }

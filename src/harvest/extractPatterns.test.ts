@@ -74,6 +74,7 @@ test("NONE response produces no file", async () => {
     assert.equal(files.length, 0);
     assert.equal(result.skippedNone, 1);
     assert.equal(result.writtenFiles.length, 0);
+    assert.equal(result.deduplicated, 0);
   });
 });
 
@@ -115,6 +116,7 @@ test("valid pattern response writes to harvested/patterns path", async () => {
     const content = await readFile(written, "utf8");
     assert.ok(content.includes("# Pattern Summary"));
     assert.ok(content.includes("## Title"));
+    assert.equal(result.deduplicated, 0);
   });
 });
 
@@ -145,6 +147,7 @@ test("invalid non-NONE response is logged and skipped", async () => {
     assert.equal(result.invalid, 1);
     assert.equal(result.writtenFiles.length, 0);
     assert.ok(lines.some((line) => line.includes("missing '# Pattern Summary'")));
+    assert.equal(result.deduplicated, 0);
   });
 });
 
@@ -195,6 +198,7 @@ test("provider failure is logged and processing continues", async () => {
     assert.equal(result.providerFailures, 1);
     assert.equal(result.writtenFiles.length, 1);
     assert.ok(lines.some((line) => line.includes("Pattern extraction failed for 11111111")));
+    assert.equal(result.deduplicated, 0);
   });
 });
 
@@ -229,5 +233,50 @@ test("prompt variables are substituted for each commit", async () => {
     assert.ok(seenPrompts[0].includes("Probe: logging"));
     assert.ok(seenPrompts[0].includes("sha: 99999999"));
     assert.ok(seenPrompts[0].includes("trace update"));
+  });
+});
+
+test("duplicate normalized titles are discarded within one extraction run", async () => {
+  await withTempDir(async (tempDir) => {
+    const promptPath = await writePromptTemplate(tempDir);
+    const lines: string[] = [];
+    let callCount = 0;
+
+    const result = await extractPatterns(
+      {
+        rootDir: tempDir,
+        projectName: "comm-service",
+        probeName: "resilience",
+        commits: [
+          { sha: "11111111", message: "retry one", diffText: "+retry" },
+          { sha: "22222222", message: "retry two", diffText: "+backoff" },
+        ],
+        context: makeContext(tempDir),
+        promptTemplatePath: promptPath,
+      },
+      async () => {
+        callCount += 1;
+        if (callCount === 1) {
+          return [
+            "# Pattern Summary",
+            "",
+            "## Title",
+            "Retry Backoff",
+          ].join("\n");
+        }
+
+        return [
+          "# Pattern Summary",
+          "",
+          "## Title",
+          "retry   backoff!!!",
+        ].join("\n");
+      },
+      (line) => lines.push(line),
+    );
+
+    assert.equal(result.writtenFiles.length, 1);
+    assert.equal(result.deduplicated, 1);
+    assert.ok(lines.some((line) => line.includes("Duplicate pattern discarded for 22222222")));
   });
 });
