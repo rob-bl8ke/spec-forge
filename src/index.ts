@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { Command } from "commander";
+import { initializeCommandContext } from "./config/context";
 import { registerInitCommand } from "./commands/init";
 import { registerRunCommand } from "./commands/run";
 import { registerSyncCommand } from "./commands/sync";
@@ -13,6 +14,14 @@ program
   .name("spec-forge")
   .description("Spec Forge CLI")
   .version("0.1.0");
+
+program.hook("preAction", async (_, actionCommand) => {
+  await initializeCommandContext({
+    commandName: actionCommand.name(),
+    args: actionCommand.args,
+    options: actionCommand.opts(),
+  });
+});
 
 registerInitCommand(program);
 registerRunCommand(program);

@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import { getCommandContext } from "../config/context";
 
 export function registerAnalyzeChangeCommand(program: Command): void {
   program
@@ -9,6 +10,7 @@ export function registerAnalyzeChangeCommand(program: Command): void {
     .argument("<to-version>", "Target version")
     .description("Analyze impact between two workflow output versions")
     .action(() => {
-      console.log("analyze-change is not implemented yet.");
+      const context = getCommandContext();
+      console.log(`analyze-change is not implemented yet. Loaded config from ${context.rootDir}.`);
     });
 }
