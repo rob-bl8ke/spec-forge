@@ -33,12 +33,14 @@ test("spec-to-tasks resolves to full workflow dispatch", async () => {
     await seedWorkflowRoot(tempDir);
 
     let payload: unknown;
+    let dispatchRootDir: string | null = null;
     await runCommandHandler(
       tempDir,
       "spec-to-tasks",
       { project: "comm-service" },
-      async (input) => {
+      async (input, rootDir) => {
         payload = input;
+        dispatchRootDir = rootDir;
       },
     );
 
@@ -51,6 +53,7 @@ test("spec-to-tasks resolves to full workflow dispatch", async () => {
         project: "comm-service",
       },
     });
+    assert.equal(dispatchRootDir, tempDir);
   });
 });
 
@@ -59,12 +62,14 @@ test("architecture resolves to single-step dispatch", async () => {
     await seedWorkflowRoot(tempDir);
 
     let payload: unknown;
+    let dispatchRootDir: string | null = null;
     await runCommandHandler(
       tempDir,
       "architecture",
       { project: "comm-service", feature: "campaign-retry", version: "v2" },
-      async (input) => {
+      async (input, rootDir) => {
         payload = input;
+        dispatchRootDir = rootDir;
       },
     );
 
@@ -80,6 +85,7 @@ test("architecture resolves to single-step dispatch", async () => {
         version: "v2",
       },
     });
+    assert.equal(dispatchRootDir, tempDir);
   });
 });
 
