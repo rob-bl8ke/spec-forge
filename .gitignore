@@ -1,0 +1,23 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+
+# SQLite database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment config
+.env
+.env.local
+.env*.local
+
+# IDE
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

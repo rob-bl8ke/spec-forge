@@ -1,0 +1,19 @@
+{
+  "name": "spec-forge",
+  "version": "0.1.0",
+  "description": "Local-first CLI for spec and workflow artifact generation.",
+  "bin": {
+    "spec-forge": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.2",
+    "typescript": "^5.8.3"
+  }
+}
