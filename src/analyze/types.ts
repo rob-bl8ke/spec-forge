@@ -17,12 +17,15 @@ export interface AnalyzeNewTask extends AnalyzeTaskReference {
   suggestedDescription: string;
 }
 
-export interface JiraTaskImpact {
+export interface TaskImpact {
   unchanged: AnalyzeTaskReference[];
   modified: AnalyzeModifiedTask[];
   removed: AnalyzeRemovedTask[];
   new: AnalyzeNewTask[];
 }
+
+// Backward-compatible alias that matches the current spec JSON key naming.
+export type JiraTaskImpact = TaskImpact;
 
 export interface TaskPromptImpact {
   changed: boolean;
@@ -40,6 +43,20 @@ export interface AnalyzeChangeModel {
   jiraTaskImpact: JiraTaskImpact;
   taskPromptImpact: TaskPromptImpact;
   recommendedJiraActions: string[];
+}
+
+// Internal neutral model to reduce tool-specific coupling in implementation code.
+export interface AnalyzeChangeInternalModel {
+  project: string;
+  feature: string;
+  fromVersion: string;
+  toVersion: string;
+  summary: string;
+  requirementsChanges: string[];
+  architectureChanges: string[];
+  taskImpact: TaskImpact;
+  taskPromptImpact: TaskPromptImpact;
+  recommendedTaskActions: string[];
 }
 
 export interface LoadedVersionArtifacts {

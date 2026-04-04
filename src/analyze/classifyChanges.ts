@@ -1,10 +1,11 @@
 import type {
+  AnalyzeChangeInternalModel,
   AnalyzeChangeModel,
   AnalyzeNewTask,
   AnalyzeRemovedTask,
   AnalyzeTaskReference,
   ClassifyChangesInput,
-  JiraTaskImpact,
+  TaskImpact,
 } from "./types";
 
 interface ParsedTask {
@@ -100,7 +101,7 @@ function taskSort(a: AnalyzeTaskReference, b: AnalyzeTaskReference): number {
   return aNum - bNum;
 }
 
-function classifyJiraTaskImpact(fromContent: string, toContent: string): JiraTaskImpact {
+function classifyTaskImpact(fromContent: string, toContent: string): TaskImpact {
   const fromTasks = parseTaskSections(fromContent);
   const toTasks = parseTaskSections(toContent);
 
@@ -169,11 +170,11 @@ function summarizeTaskPromptImpact(fromContent: string, toContent: string): { ch
   };
 }
 
-function summarizeOverall(model: Pick<AnalyzeChangeModel, "requirementsChanges" | "architectureChanges" | "jiraTaskImpact" | "taskPromptImpact">): string {
-  const modifiedCount = model.jiraTaskImpact.modified.length;
-  const removedCount = model.jiraTaskImpact.removed.length;
-  const newCount = model.jiraTaskImpact.new.length;
-  const unchangedCount = model.jiraTaskImpact.unchanged.length;
+function summarizeOverall(model: Pick<AnalyzeChangeInternalModel, "requirementsChanges" | "architectureChanges" | "taskImpact" | "taskPromptImpact">): string {
+  const modifiedCount = model.taskImpact.modified.length;
+  const removedCount = model.taskImpact.removed.length;
+  const newCount = model.taskImpact.new.length;
+  const unchangedCount = model.taskImpact.unchanged.length;
 
   return [
     `Requirements entries: ${model.requirementsChanges.length}`,
@@ -194,7 +195,7 @@ export function classifyChanges(input: ClassifyChangesInput): AnalyzeChangeModel
     input.artifacts.architecture.from,
     input.artifacts.architecture.to,
   );
-  const jiraTaskImpact = classifyJiraTaskImpact(
+  const taskImpact = classifyTaskImpact(
     input.artifacts.jiraTask.from,
     input.artifacts.jiraTask.to,
   );
@@ -203,21 +204,21 @@ export function classifyChanges(input: ClassifyChangesInput): AnalyzeChangeModel
     input.artifacts.taskPrompt.to,
   );
 
-  const recommendedJiraActions: string[] = [];
-  if (jiraTaskImpact.new.length > 0) {
-    recommendedJiraActions.push("Create task tickets for all tasks in jiraTaskImpact.new.");
+  const recommendedTaskActions: string[] = [];
+  if (taskImpact.new.length > 0) {
+    recommendedTaskActions.push("Create task tickets for all tasks in taskImpact.new.");
   }
-  if (jiraTaskImpact.modified.length > 0) {
-    recommendedJiraActions.push("Update existing task tickets for all tasks in jiraTaskImpact.modified.");
+  if (taskImpact.modified.length > 0) {
+    recommendedTaskActions.push("Update existing task tickets for all tasks in taskImpact.modified.");
   }
-  if (jiraTaskImpact.removed.length > 0) {
-    recommendedJiraActions.push("Close or de-scope task tickets for all tasks in jiraTaskImpact.removed.");
+  if (taskImpact.removed.length > 0) {
+    recommendedTaskActions.push("Close or de-scope task tickets for all tasks in taskImpact.removed.");
   }
-  if (recommendedJiraActions.length === 0) {
-    recommendedJiraActions.push("No task ticket updates required.");
+  if (recommendedTaskActions.length === 0) {
+    recommendedTaskActions.push("No task ticket updates required.");
   }
 
-  const model: AnalyzeChangeModel = {
+  const internalModel: AnalyzeChangeInternalModel = {
     project: input.project,
     feature: input.feature,
     fromVersion: input.fromVersion,
@@ -225,11 +226,25 @@ export function classifyChanges(input: ClassifyChangesInput): AnalyzeChangeModel
     summary: "",
     requirementsChanges,
     architectureChanges,
-    jiraTaskImpact,
+    taskImpact,
     taskPromptImpact,
-    recommendedJiraActions,
+    recommendedTaskActions,
   };
 
-  model.summary = summarizeOverall(model);
-  return model;
+  internalModel.summary = summarizeOverall(internalModel);
+
+  const schemaModel: AnalyzeChangeModel = {
+    project: internalModel.project,
+    feature: internalModel.feature,
+    fromVersion: internalModel.fromVersion,
+    toVersion: internalModel.toVersion,
+    summary: internalModel.summary,
+    requirementsChanges: internalModel.requirementsChanges,
+    architectureChanges: internalModel.architectureChanges,
+    jiraTaskImpact: internalModel.taskImpact,
+    taskPromptImpact: internalModel.taskPromptImpact,
+    recommendedJiraActions: internalModel.recommendedTaskActions,
+  };
+
+  return schemaModel;
 }
