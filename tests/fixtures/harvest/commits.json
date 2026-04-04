@@ -1,0 +1,26 @@
+[
+  {
+    "sha": "aaa11111",
+    "author": "dependabot[bot]",
+    "message": "chore: bump deps",
+    "changedFiles": ["src/retry.ts"],
+    "changedLines": 20,
+    "diffText": "diff --git a/src/retry.ts b/src/retry.ts\n+ update deps"
+  },
+  {
+    "sha": "bbb22222",
+    "author": "Dev One",
+    "message": "feat: add retry backoff strategy",
+    "changedFiles": ["src/retry.ts"],
+    "changedLines": 34,
+    "diffText": "diff --git a/src/retry.ts b/src/retry.ts\n+ add retry with backoff"
+  },
+  {
+    "sha": "ccc33333",
+    "author": "Dev Two",
+    "message": "feat: improve retry behavior",
+    "changedFiles": ["src/retry.ts"],
+    "changedLines": 28,
+    "diffText": "diff --git a/src/retry.ts b/src/retry.ts\n+ refine retry timing"
+  }
+]
