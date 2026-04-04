@@ -26,7 +26,10 @@ Assess the current spec-forge v0.3 specification for backlog readiness, identify
 - Included: pre-backlog specification review, ambiguity identification, inconsistency identification, and decision checklist for backlog generation.
 - Excluded: implementation, direct spec edits, and creation of GitHub issues.
 - Confirmed with user: target the full v0.3 CLI surface in the first backlog, use Node.js, support both Copilot and Claude providers in the first build, allow downstream-only single-step reruns, and include both preview output and line-level diff UX for overwrite flows.
-- Recommendation: because the scope stays broad, backlog tasks should start with the shared execution model and file/state contracts before splitting into command-specific work.
+- New v0.4 refinement closes most earlier blockers by defining prompt assembly, explicit step execution, downstream-only reruns, asset lookup paths, `init`, harvest commit-window semantics, analyze-change persistence, naming normalization, sync confirmation flow, and invalid-output recovery.
+- v0.5 closes the remaining contract-edge gaps by making `user_input` template-only, using one shared artifact context section, narrowing silent-overwrite rules, making analyze-change non-destructive to source artifacts, replacing fuzzy harvest dedupe with normalized exact-title match, defining exact `init` file contents, and defining stop-on-first-failure workflow behavior with preserved prior outputs.
+- Remaining items are now implementation choices rather than spec blockers: provider CLI environment validation on Windows, diff library/format choice, config validation implementation style, and CLI root/bootstrap expectations if commands are run outside the spec-forge root.
+- Recommendation: the spec is now backlog-ready. Build the GitHub task list around shared foundations first, then command-specific slices: CLI/config bootstrap, provider adapters, workflow engine, sync, harvest/promote, and analyze-change.
 
 **Further Considerations**
 1. Lock the exact `init` command output and project file layout so config/bootstrap tasks are estimable.
