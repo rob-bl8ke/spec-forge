@@ -19,7 +19,7 @@ function makeInput(overrides?: Partial<Parameters<typeof classifyChanges>[0]>) {
       },
       jiraTask: {
         from: [
-          "# Jira Tasks",
+          "# Tasks",
           "## TASK-1: Add retry policy",
           "Implement bounded retries.",
           "",
@@ -30,7 +30,7 @@ function makeInput(overrides?: Partial<Parameters<typeof classifyChanges>[0]>) {
           "Delete old retry branch.",
         ].join("\n"),
         to: [
-          "# Jira Tasks",
+          "# Tasks",
           "## TASK-1: Add retry policy",
           "Implement bounded retries.",
           "",
@@ -97,12 +97,12 @@ test("task identity uses TASK-<number> IDs, not title matching", () => {
       ...makeInput().artifacts,
       jiraTask: {
         from: [
-          "# Jira Tasks",
+          "# Tasks",
           "## TASK-1: Shared Title",
           "Old content.",
         ].join("\n"),
         to: [
-          "# Jira Tasks",
+          "# Tasks",
           "## TASK-99: Shared Title",
           "Old content.",
         ].join("\n"),

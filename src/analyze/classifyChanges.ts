@@ -129,7 +129,7 @@ function classifyJiraTaskImpact(fromContent: string, toContent: string): JiraTas
       taskId,
       title: toTask.title,
       change: `Task ${taskId} content changed between versions.`,
-      recommendedJiraUpdate: `Review and update Jira ticket for ${taskId} to reflect revised scope.`,
+      recommendedJiraUpdate: `Review and update task ticket for ${taskId} to reflect revised scope.`,
     });
   }
 
@@ -205,16 +205,16 @@ export function classifyChanges(input: ClassifyChangesInput): AnalyzeChangeModel
 
   const recommendedJiraActions: string[] = [];
   if (jiraTaskImpact.new.length > 0) {
-    recommendedJiraActions.push("Create Jira tickets for all tasks in jiraTaskImpact.new.");
+    recommendedJiraActions.push("Create task tickets for all tasks in jiraTaskImpact.new.");
   }
   if (jiraTaskImpact.modified.length > 0) {
-    recommendedJiraActions.push("Update existing Jira tickets for all tasks in jiraTaskImpact.modified.");
+    recommendedJiraActions.push("Update existing task tickets for all tasks in jiraTaskImpact.modified.");
   }
   if (jiraTaskImpact.removed.length > 0) {
-    recommendedJiraActions.push("Close or de-scope Jira tickets for all tasks in jiraTaskImpact.removed.");
+    recommendedJiraActions.push("Close or de-scope task tickets for all tasks in jiraTaskImpact.removed.");
   }
   if (recommendedJiraActions.length === 0) {
-    recommendedJiraActions.push("No Jira updates required.");
+    recommendedJiraActions.push("No task ticket updates required.");
   }
 
   const model: AnalyzeChangeModel = {

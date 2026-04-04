@@ -44,7 +44,7 @@ test("architecture artifact with all required headings passes", () => {
 });
 
 test("jira-task validates root heading and task pattern", () => {
-  const output = "# Jira Tasks\n## TASK-1: Implement\n";
+  const output = "# Tasks\n## TASK-1: Implement\n";
   assert.equal(validateOutput("jira-task", output).valid, true);
 });
 
@@ -61,10 +61,15 @@ test("missing required heading fails validation", () => {
 });
 
 test("jira-task without TASK headings fails", () => {
-  const output = "# Jira Tasks\n## Notes\n";
+  const output = "# Tasks\n## Notes\n";
   const result = validateOutput("jira-task", output);
   assert.equal(result.valid, false);
   assert.match(result.error ?? "", /Missing required TASK headings/);
+});
+
+test("jira-task still accepts legacy '# Jira Tasks' heading", () => {
+  const output = "# Jira Tasks\n## TASK-1: Implement\n";
+  assert.equal(validateOutput("jira-task", output).valid, true);
 });
 
 test("validation failure writes .invalid.md and does not overwrite canonical", async () => {

@@ -46,8 +46,10 @@ export function validateOutput(stepId: string, output: string): ValidationResult
   }
 
   if (stepId === "jira-task") {
-    if (!output.includes("# Jira Tasks")) {
-      return { valid: false, error: "Missing required heading # Jira Tasks" };
+    const hasPreferredHeading = output.includes("# Tasks");
+    const hasLegacyHeading = output.includes("# Jira Tasks");
+    if (!hasPreferredHeading && !hasLegacyHeading) {
+      return { valid: false, error: "Missing required heading # Tasks" };
     }
 
     if (!/##\s+TASK-\d+:/.test(output)) {
