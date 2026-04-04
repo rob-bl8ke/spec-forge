@@ -184,3 +184,55 @@ test("existing JSON report is silently overwritten", async () => {
     assert.deepEqual(json, result.json);
   });
 });
+
+test("overwrite logs message when file exists", async () => {
+  await withTempDir(async (tempDir) => {
+    const model = createModel();
+    const outputPath = path.join(
+      tempDir,
+      "output",
+      model.project,
+      "campaign-retry",
+      `analysis-${model.fromVersion}-${model.toVersion}.json`,
+    );
+
+    // Create initial file
+    await mkdir(path.dirname(outputPath), { recursive: true });
+    await writeFile(outputPath, '{"old": "content"}\n', "utf8");
+
+    // Run report generation on existing file
+    const logged: string[] = [];
+    await generateJsonReport(
+      {
+        rootDir: tempDir,
+        model,
+      },
+      () => {},
+      (line) => logged.push(line),
+    );
+
+    // Should log overwrite message
+    assert.deepEqual(logged, [
+      "[analyze-change] Silently overwrote analysis-v1-v2.json",
+    ]);
+  });
+});
+
+test("no log message when writing new file", async () => {
+  await withTempDir(async (tempDir) => {
+    const model = createModel();
+
+    const logged: string[] = [];
+    await generateJsonReport(
+      {
+        rootDir: tempDir,
+        model,
+      },
+      () => {},
+      (line) => logged.push(line),
+    );
+
+    // Should not log anything for new file
+    assert.deepEqual(logged, []);
+  });
+});

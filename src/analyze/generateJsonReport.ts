@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { slugify } from "../utils/naming";
 import type { AnalyzeChangeModel } from "./types";
@@ -39,6 +39,7 @@ export function serializeAnalyzeModel(model: AnalyzeChangeModel): object {
 export async function generateJsonReport(
   input: GenerateJsonReportInput,
   print: (line: string) => void = console.log,
+  log: (message: string) => void = () => {},
 ): Promise<GenerateJsonReportResult> {
   const featureSlug = slugify(input.model.feature);
   const outputDir = path.join(input.rootDir, "output", input.model.project, featureSlug);
@@ -49,9 +50,22 @@ export async function generateJsonReport(
     `analysis-${input.model.fromVersion}-${input.model.toVersion}.json`,
   );
 
+  // Check if file exists (for overwrite logging)
+  let fileExists = false;
+  try {
+    await access(outputPath);
+    fileExists = true;
+  } catch {
+    // File does not exist
+  }
+
   const json = serializeAnalyzeModel(input.model);
   const jsonString = JSON.stringify(json, null, 2);
   await writeFile(outputPath, jsonString, "utf8");
+
+  if (fileExists) {
+    log(`[analyze-change] Silently overwrote analysis-${input.model.fromVersion}-${input.model.toVersion}.json`);
+  }
 
   print(outputPath);
   return { outputPath, json };

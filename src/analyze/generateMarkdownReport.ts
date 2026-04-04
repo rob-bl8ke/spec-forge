@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { slugify } from "../utils/naming";
 import type { AnalyzeChangeModel } from "./types";
@@ -109,6 +109,7 @@ export function renderMarkdownReport(model: AnalyzeChangeModel): string {
 export async function generateMarkdownReport(
   input: GenerateMarkdownReportInput,
   print: (line: string) => void = console.log,
+  log: (message: string) => void = () => {},
 ): Promise<GenerateMarkdownReportResult> {
   const featureSlug = slugify(input.model.feature);
   const outputDir = path.join(input.rootDir, "output", input.model.project, featureSlug);
@@ -119,8 +120,21 @@ export async function generateMarkdownReport(
     `analysis-${input.model.fromVersion}-${input.model.toVersion}.md`,
   );
 
+  // Check if file exists (for overwrite logging)
+  let fileExists = false;
+  try {
+    await access(outputPath);
+    fileExists = true;
+  } catch {
+    // File does not exist
+  }
+
   const markdown = renderMarkdownReport(input.model);
   await writeFile(outputPath, markdown, "utf8");
+
+  if (fileExists) {
+    log(`[analyze-change] Silently overwrote analysis-${input.model.fromVersion}-${input.model.toVersion}.md`);
+  }
 
   print(outputPath);
   return { outputPath, markdown };
