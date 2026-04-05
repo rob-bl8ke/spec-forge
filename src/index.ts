@@ -8,6 +8,11 @@ import { registerSyncCommand } from "./commands/sync";
 import { registerHarvestCommand } from "./commands/harvest";
 import { registerPromoteCommand } from "./commands/promote";
 import { registerAnalyzeChangeCommand } from "./commands/analyzeChange";
+import { registerProviders } from "./providers/providerFactory";
+import { CopilotAdapter } from "./providers/CopilotAdapter";
+import { ClaudeAdapter } from "./providers/ClaudeAdapter";
+
+registerProviders([new CopilotAdapter(), new ClaudeAdapter()]);
 
 const program = new Command();
 

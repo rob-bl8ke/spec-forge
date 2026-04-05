@@ -1,8 +1,10 @@
 import * as path from "path";
+import { readFile } from "node:fs/promises";
 import { StepDefinition } from "./types";
 import {
-  resolvePromptTemplateString,
+  resolvePrompt,
   buildArtifactVariables,
+  type PromptVariables,
 } from "./resolvePrompt";
 import { assembleArtifactContext } from "./assembleArtifactContext";
 import { loadAssets } from "./loadAssets";
@@ -17,7 +19,7 @@ import {
 } from "./persistOutput";
 import type { ConfigContext } from "../config/types";
 import { logger } from "../logging/logger";
-import { artifactFileName } from "../utils/naming";
+import { artifactFileName, slugify } from "../utils/naming";
 import { resolveProviderFromContext } from "../providers/providerFactory";
 
 /**
@@ -57,14 +59,32 @@ export async function executeStep(
 
   try {
     // Step 1: Resolve prompt template
-    const artifactVariables = buildArtifactVariables(
-      contexts.stepArtifacts
-    );
-    const resolvedPrompt = resolvePromptTemplateString(
-      step.prompt,
-      artifactVariables,
-      `Workflow step: ${step.id}`
-    );
+    // Build core runtime variables
+    const coreVariables: PromptVariables = {
+      project_name: projectName,
+      feature_name: featureName,
+      feature_slug: slugify(featureName),
+      step_id: step.id,
+      user_input: "",
+    };
+
+    // Read artifact file content for variable substitution (stepArtifacts maps step IDs → file paths)
+    const artifactFileContent: Record<string, string> = {};
+    for (const [stepId, filePath] of Object.entries(contexts.stepArtifacts)) {
+      try {
+        artifactFileContent[stepId] = await readFile(filePath, "utf8");
+      } catch {
+        artifactFileContent[stepId] = "";
+      }
+    }
+    const artifactVariables = buildArtifactVariables(artifactFileContent);
+    const allVariables: PromptVariables = { ...coreVariables, ...artifactVariables };
+
+    // Read prompt template from disk and resolve variables
+    const promptTemplatePath = path.isAbsolute(step.prompt)
+      ? step.prompt
+      : path.join(specForgeRoot, step.prompt);
+    const resolvedPrompt = await resolvePrompt(promptTemplatePath, allVariables);
 
     // Step 2: Assemble artifact context (from input files)
     let artifactContext = "";
@@ -111,14 +131,14 @@ export async function executeStep(
 
     // Step 6: Validate output
     const validation = validateOutput(
-      step.output,
+      step.id,
       providerResponse.stdout
     );
 
     if (!validation.valid) {
       // Validation failed
       const invalidPath = await handleValidationFailure(
-        step.output,
+        step.id,
         providerResponse.stdout,
         versionDir,
         validation.error || "Validation failed"
@@ -139,7 +159,7 @@ export async function executeStep(
           rootDir: contexts.rootDir,
           project: projectName,
           feature: featureName,
-          stepId: step.output,
+          stepId: step.id,
           content: providerResponse.stdout,
           version,
         }
@@ -148,7 +168,7 @@ export async function executeStep(
           rootDir: contexts.rootDir,
           project: projectName,
           feature: featureName,
-          stepId: step.output,
+          stepId: step.id,
           content: providerResponse.stdout,
           version,
         };
@@ -162,7 +182,7 @@ export async function executeStep(
       stepId: step.id,
       success: true,
       artifactPath: result.artifactPath,
-      outputFile: artifactFileName(step.output),
+      outputFile: artifactFileName(step.id),
     };
   } catch (error) {
     const errorMessage =

@@ -71,10 +71,8 @@ export function validateOutput(stepId: string, output: string): ValidationResult
     return { valid: true };
   }
 
-  return {
-    valid: false,
-    error: `Unknown step '${stepId}' for output validation.`,
-  };
+  // No validation rules defined for this step — pass through.
+  return { valid: true };
 }
 
 export async function handleValidationFailure(

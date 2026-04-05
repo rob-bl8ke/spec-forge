@@ -121,7 +121,7 @@ async function defaultDispatcher(
       break; // Stop at the rerun step
     }
     // Load prior step artifacts for context
-    const artifactPath = path.join(versionDir, `${s.output}.md`);
+    const artifactPath = path.join(versionDir, s.output);
     stepArtifacts[s.id] = artifactPath;
   }
 
