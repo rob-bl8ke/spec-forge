@@ -1,6 +1,6 @@
 # 🧠 Spec Forge — User Manual (MVP)
 
----
+
 
 # 1. 🚀 What Spec Forge Does
 
@@ -12,11 +12,11 @@ Spec Forge is a **local CLI system** that helps you:
 * learn from your team’s commits
 * safely evolve specs without breaking execution (Jira)
 
----
+
 
 # 2. 🏁 Getting Started
 
----
+
 
 ## 2.1 Install prerequisites
 
@@ -29,7 +29,7 @@ You need:
   * GitHub Copilot CLI
   * OR Claude Code CLI
 
----
+
 
 ## 2.2 Project structure
 
@@ -48,7 +48,7 @@ spec-forge/
   output/
 ```
 
----
+
 
 ## 2.3 Initialize a project
 
@@ -95,11 +95,11 @@ harvest:
     - logging
 ```
 
----
+
 
 # 3. 🧩 Core Workflow: Spec → Tasks
 
----
+
 
 ## 3.1 Run full workflow
 
@@ -107,7 +107,7 @@ harvest:
 spec-forge run spec-to-tasks --project comm-service --feature campaign-retry
 ```
 
----
+
 
 ## 3.2 What happens
 
@@ -119,7 +119,7 @@ spec-forge run spec-to-tasks --project comm-service --feature campaign-retry
    * `jira-task.md`
    * `task-prompt.md`
 
----
+
 
 ## 3.3 Output location
 
@@ -127,7 +127,7 @@ spec-forge run spec-to-tasks --project comm-service --feature campaign-retry
 spec-forge/output/comm-service/campaign-retry/v1/
 ```
 
----
+
 
 ## 3.4 Example input
 
@@ -135,7 +135,7 @@ spec-forge/output/comm-service/campaign-retry/v1/
 Implement retry logic for campaign execution using Kafka with idempotency.
 ```
 
----
+
 
 ## 3.5 Example output (simplified)
 
@@ -156,7 +156,7 @@ Retry failed campaign processing messages.
 - No duplicate processing
 ```
 
----
+
 
 ### jira-task.md
 
@@ -172,11 +172,11 @@ Retry failed messages with backoff.
 - Configurable backoff
 ```
 
----
+
 
 # 4. 🔁 Iterative Refinement (CRITICAL)
 
----
+
 
 ## 4.1 Edit manually
 
@@ -188,7 +188,7 @@ requirements.md
 
 Refine it.
 
----
+
 
 ## 4.2 Rerun architecture
 
@@ -196,7 +196,7 @@ Refine it.
 spec-forge run architecture --project comm-service --feature campaign-retry --version v1
 ```
 
----
+
 
 ## 4.3 What happens
 
@@ -209,7 +209,7 @@ spec-forge run architecture --project comm-service --feature campaign-retry --ve
 Replace architecture.md? (y/n)
 ```
 
----
+
 
 ## 4.4 Rerun tasks
 
@@ -217,7 +217,7 @@ Replace architecture.md? (y/n)
 spec-forge run jira-task --version v1
 ```
 
----
+
 
 ## 🔥 Best practice
 
@@ -227,11 +227,11 @@ Always refine:
 requirements → architecture → tasks
 ```
 
----
+
 
 # 5. 🧠 Understanding Prompt Templates
 
----
+
 
 ## 5.1 How prompts work
 
@@ -246,12 +246,12 @@ Requirements:
 {{requirements}}
 ```
 
----
+
 
 ## 5.2 Available variables
 
 | Variable         | Meaning             |
-| ---------------- | ------------------- |
+| - | - |
 | {{requirements}} | previous step       |
 | {{architecture}} | previous step       |
 | {{jira_task}}    | previous step       |
@@ -260,32 +260,31 @@ Requirements:
 | {{knowledge}}    | knowledge files     |
 | {{user_input}}   | initial input       |
 
----
+
 
 ## 5.3 Prompt composition (actual structure)
 
 ```text
 [template]
 
---- CONTEXT: ARTIFACTS ---
+ CONTEXT: ARTIFACTS 
 # requirements
 ...
 
---- INSTRUCTIONS ---
+ INSTRUCTIONS 
 ...
 
---- SKILLS ---
+ SKILLS 
 ...
 
---- KNOWLEDGE ---
+ KNOWLEDGE 
 ...
 ```
 
----
 
 # 6. 🧰 Recommended Prompt Templates
 
----
+
 
 ## 6.1 Requirements (recommended tweak)
 
@@ -297,7 +296,7 @@ Add constraint enforcement:
 - Must support Kafka retry patterns
 ```
 
----
+
 
 ## 6.2 Architecture (recommended tweak)
 
@@ -310,7 +309,7 @@ Add:
 - Storage
 ```
 
----
+
 
 ## 6.3 Jira Tasks (recommended tweak)
 
@@ -320,7 +319,7 @@ Add:
 ### Story Points (Optional)
 ```
 
----
+
 
 ## 6.4 Task Prompt (VERY important)
 
@@ -333,11 +332,11 @@ Add:
 - Include error handling
 ```
 
----
+
 
 # 7. 🔄 Syncing into Your Repo
 
----
+
 
 ## 7.1 Add skills
 
@@ -348,7 +347,7 @@ assets:
     - spring-resilience
 ```
 
----
+
 
 ## 7.2 Run sync
 
@@ -356,7 +355,7 @@ assets:
 spec-forge sync comm-service
 ```
 
----
+
 
 ## 7.3 Preview
 
@@ -365,7 +364,7 @@ CREATE   skills/kafka-patterns.md
 UPDATE   instructions/backend.md
 ```
 
----
+
 
 ## 7.4 Confirm
 
@@ -373,7 +372,7 @@ UPDATE   instructions/backend.md
 Apply changes? (y/n)
 ```
 
----
+
 
 ## 7.5 Output
 
@@ -381,11 +380,11 @@ Apply changes? (y/n)
 repo/.github/spec-forge/
 ```
 
----
+
 
 # 8. 🧠 Harvesting Team Knowledge
 
----
+
 
 ## 8.1 Run harvest
 
@@ -393,7 +392,7 @@ repo/.github/spec-forge/
 spec-forge harvest comm-service
 ```
 
----
+
 
 ## 8.2 What happens
 
@@ -404,7 +403,7 @@ spec-forge harvest comm-service
   * keywords
 * extracts patterns
 
----
+
 
 ## 8.3 Output
 
@@ -415,7 +414,7 @@ harvested/
   reports/
 ```
 
----
+
 
 ## 8.4 Example pattern
 
@@ -432,7 +431,7 @@ Prevents duplicate processing
 - Store processed IDs
 ```
 
----
+
 
 ## 8.5 Promote skill
 
@@ -440,11 +439,11 @@ Prevents duplicate processing
 spec-forge promote kafka-idempotent-consumer
 ```
 
----
+
 
 # 9. 🔍 Handling Requirement Changes
 
----
+
 
 ## 9.1 Generate new version
 
@@ -458,7 +457,7 @@ Creates:
 v2/
 ```
 
----
+
 
 ## 9.2 Analyze change
 
@@ -466,7 +465,7 @@ v2/
 spec-forge analyze-change comm-service campaign-retry v1 v2
 ```
 
----
+
 
 ## 9.3 Output
 
@@ -475,7 +474,7 @@ analysis-v1-v2.md
 analysis-v1-v2.json
 ```
 
----
+
 
 ## 9.4 Example result
 
@@ -490,30 +489,30 @@ New:
 - TASK-3 exponential backoff
 ```
 
----
+
 
 ## 9.5 What YOU do
 
 * update Jira manually
 * do NOT overwrite automatically
 
----
+
 
 # 10. 🧠 Skills (Reusable Intelligence)
 
----
+
 
 ## 10.1 Example skill
 
 ```md
----
+
 id: kafka-idempotent-consumer
 type: skill
 version: 0.1.0
 confidence: high
 tags:
   - kafka
----
+
 
 # Description
 Avoid duplicate processing
@@ -525,7 +524,7 @@ Avoid duplicate processing
 ...
 ```
 
----
+
 
 ## 10.2 Best practices
 
@@ -533,11 +532,11 @@ Avoid duplicate processing
 * focus on decisions
 * include examples
 
----
+
 
 # 11. 🧠 Instructions (Behavior Control)
 
----
+
 
 ## Example
 
@@ -549,11 +548,11 @@ Avoid duplicate processing
 - Avoid blocking calls
 ```
 
----
+
 
 # 12. 🧠 Knowledge (Reference Material)
 
----
+
 
 ## Example
 
@@ -564,11 +563,11 @@ Avoid duplicate processing
 - Idempotent consumer
 ```
 
----
+
 
 # 13. ⚠️ Error Handling
 
----
+
 
 ## Missing dependency
 
@@ -576,7 +575,7 @@ Avoid duplicate processing
 Missing required input: requirements.md
 ```
 
----
+
 
 ## Invalid output
 
@@ -584,7 +583,7 @@ Missing required input: requirements.md
 architecture.invalid.md
 ```
 
----
+
 
 ## Recovery
 
@@ -592,11 +591,11 @@ architecture.invalid.md
 spec-forge run architecture --version v2
 ```
 
----
+
 
 # 14. 🔄 Daily Workflow (Realistic)
 
----
+
 
 ## Morning
 
@@ -604,7 +603,7 @@ spec-forge run architecture --version v2
 spec-forge harvest comm-service
 ```
 
----
+
 
 ## Start feature
 
@@ -612,7 +611,7 @@ spec-forge harvest comm-service
 spec-forge run spec-to-tasks
 ```
 
----
+
 
 ## Refine
 
@@ -621,7 +620,7 @@ spec-forge run architecture
 spec-forge run jira-task
 ```
 
----
+
 
 ## Before coding
 
@@ -629,7 +628,7 @@ spec-forge run jira-task
 spec-forge sync comm-service
 ```
 
----
+
 
 ## After changes
 
@@ -637,11 +636,11 @@ spec-forge sync comm-service
 spec-forge analyze-change v1 v2
 ```
 
----
+
 
 # 15. 🔥 Best Practices
 
----
+
 
 ## DO
 
@@ -650,7 +649,7 @@ spec-forge analyze-change v1 v2
 * keep skills concise
 * promote only high-value patterns
 
----
+
 
 ## DON’T
 
@@ -659,7 +658,7 @@ spec-forge analyze-change v1 v2
 * sync everything everywhere
 * trust harvest output blindly
 
----
+
 
 # 🏁 Final Mental Model
 
@@ -669,7 +668,7 @@ Spec Forge is:
 Idea → Spec → Tasks → Execution → Feedback → Spec Evolution
 ```
 
----
+
 
 # 🚀 What You Now Have
 
