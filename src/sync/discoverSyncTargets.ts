@@ -17,6 +17,11 @@ export interface DiscoverSyncTargetsInput {
   rootDir: string;
   repoPath: string;
   targetDir: string;
+  targets?: {
+    skills?: string;
+    instructions?: string;
+    knowledge?: string;
+  };
   assets: {
     skills?: string[];
     instructions?: string[];
@@ -103,9 +108,10 @@ export async function discoverSyncTargets(
 
     for (const assetId of ids) {
       const sourcePath = resolveSourcePath(input.rootDir, assetType, assetId);
+      const effectiveTargetDir = input.targets?.[assetType] ?? input.targetDir;
       const targetPath = resolveTargetPath(
         input.repoPath,
-        input.targetDir,
+        effectiveTargetDir,
         assetType,
         assetId,
       );

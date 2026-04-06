@@ -307,6 +307,19 @@ harvest:
     - logging
 ```
 
+I leave `targetDir: .github/spec-forge` as-is for now. This default keeps spec-forge-managed files namespaced and separate from native GitHub tooling. My team uses Copilot, but we have not yet configured it to scan `.github/spec-forge/` in VS Code. I will do that separately — syncing gets files into the repo; configuring the AI tool makes them discoverable.
+
+If I wanted Copilot to pick up instructions automatically without any custom workspace configuration, I could override the path for that type:
+
+```yaml
+sync:
+  targetDir: .github/spec-forge   # fallback for skills and knowledge
+  targets:
+    instructions: .github         # Copilot reads .github/ by default
+```
+
+For now I keep the default and will configure VS Code to scan `.github/spec-forge/` as an additional workspace folder.
+
 ---
 
 # 3. Sync assets into the repo
@@ -356,6 +369,8 @@ Now my repo has:
   knowledge/
     event-driven-guidelines.md
 ```
+
+These files are committed to source control so all teammates get them. Anyone working in the `communication-service` repo can add `.github/spec-forge/` as a workspace folder in VS Code (or configure their AI tool's scan paths) to have these skills and instructions automatically available during development.
 
 ---
 

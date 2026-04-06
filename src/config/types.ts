@@ -27,6 +27,11 @@ export interface ProjectConfig {
   };
   sync?: {
     targetDir?: string;
+    targets?: {
+      skills?: string;
+      instructions?: string;
+      knowledge?: string;
+    };
     previewByDefault?: boolean;
     overwritePolicy?: string;
   };

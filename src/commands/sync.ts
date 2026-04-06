@@ -23,19 +23,21 @@ export function registerSyncCommand(program: Command): void {
       const project = context.resolvedProject;
       const assets = project.assets ?? {};
       const targetDir = project.sync?.targetDir ?? ".github/spec-forge";
-      const repoPath = path.resolve(context.rootDir, "projects", project.repoPath);
+      const targets = project.sync?.targets;
+      const repoPath = path.resolve(context.rootDir, project.repoPath);
       const syncedAt = new Date().toISOString();
 
-      const targets = await discoverSyncTargets({
+      const syncTargets = await discoverSyncTargets({
         rootDir: context.rootDir,
         repoPath,
         targetDir,
+        targets,
         assets,
       });
 
-      const preview = printSyncPreview(targets);
+      const preview = printSyncPreview(syncTargets);
 
-      for (const target of targets) {
+      for (const target of syncTargets) {
         if (target.status !== "UPDATE") {
           continue;
         }
@@ -62,7 +64,7 @@ export function registerSyncCommand(program: Command): void {
         rootDir: context.rootDir,
         projectName: project.name,
         syncedAt,
-        targets,
+        targets: syncTargets,
       });
 
       console.log(

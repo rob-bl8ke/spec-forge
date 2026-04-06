@@ -42,7 +42,7 @@ async function setupConfigAndRepo(rootDir: string): Promise<{ repoDir: string }>
     path.join(projectsDir, "comm-service.yaml"),
     [
       "name: comm-service",
-      "repoPath: ../repo",
+      "repoPath: repo",
       "sync:",
       "  targetDir: .github/spec-forge",
       "  overwritePolicy: prompt",

@@ -108,6 +108,14 @@ export async function validateProjectConfig(raw: unknown, filePath: string, root
     if (sync.overwritePolicy !== undefined && sync.overwritePolicy !== "prompt") {
       throw new ConfigValidationError(filePath, "sync.overwritePolicy", "must be prompt for MVP.");
     }
+    if (sync.targets !== undefined) {
+      const targets = asRecord(sync.targets, filePath);
+      for (const key of ["skills", "instructions", "knowledge"]) {
+        if (targets[key] !== undefined && typeof targets[key] !== "string") {
+          throw new ConfigValidationError(filePath, `sync.targets.${key}`, "must be a string.");
+        }
+      }
+    }
   }
 
   return {

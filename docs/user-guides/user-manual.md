@@ -357,7 +357,7 @@ Add:
 
 # 7. 🔄 Syncing into Your Repo
 
-
+The sync command publishes your local skills, instructions, and knowledge files into your repository so the whole team benefits from them. Files are written under a configurable path that your AI tooling can then discover.
 
 ## 7.1 Add skills
 
@@ -387,11 +387,50 @@ UPDATE   instructions/backend.md
 Apply changes? (y/n)
 ```
 
-## 7.5 Output
+## 7.5 Default sync target
+
+By default, files land in:
 
 ```text
 repo/.github/spec-forge/
+  skills/
+  instructions/
+  knowledge/
 ```
+
+This namespace keeps spec-forge-managed files separate from native GitHub tooling (Actions, Copilot config). It is a safe default for teams that do not yet need AI-tool-specific paths.
+
+## 7.6 Configuring sync targets
+
+Different AI tools read assets from different paths. You can control where each asset type lands using `sync.targets`.
+
+**When to use this:**
+- GitHub Copilot reads instruction files from `.github/` and custom configured workspace folders — you may want instructions there directly
+- Claude reads from `.claude/` by default — you may want skills there instead
+- You want skills in one path and instructions in a different path for the same repo
+
+**Example: Copilot-oriented layout**
+
+```yaml
+sync:
+  targetDir: .github/spec-forge   # fallback for any type not listed below
+  targets:
+    instructions: .github         # instructions where Copilot picks them up directly
+    skills: .github/prompts       # skills in a Copilot-scannable location
+    # knowledge omitted → falls back to .github/spec-forge
+```
+
+**Example: Claude-oriented layout**
+
+```yaml
+sync:
+  targetDir: .claude              # default for all types
+  # targets omitted → everything goes under .claude/<type>/
+```
+
+**Resolution order:** `sync.targets.<type>` → `sync.targetDir` → `.github/spec-forge`
+
+**Note:** Simply changing where files are synced is not enough for a tool to discover them. You must also configure the AI tool (VS Code Copilot, Claude, etc.) to scan those paths. Sync gets files into the right place; tool configuration makes them discoverable.
 
 # 8. 🧠 Harvesting Team Knowledge
 

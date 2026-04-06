@@ -285,6 +285,137 @@ test("validateProjectConfig rejects invalid overwritePolicy", async () => {
   });
 });
 
+test("validateGlobalConfig accepts optional model field", () => {
+  const config = validateGlobalConfig(
+    {
+      provider: {
+        active: "copilot",
+        timeoutMs: 120000,
+        model: "gpt-4.1",
+      },
+      logging: {
+        level: "info",
+        writePromptFiles: false,
+      },
+    },
+    "config.yaml",
+  );
+
+  assert.equal(config.provider.model, "gpt-4.1");
+});
+
+test("validateGlobalConfig sets model to undefined when omitted", () => {
+  const config = validateGlobalConfig(
+    {
+      provider: {
+        active: "copilot",
+        timeoutMs: 120000,
+      },
+      logging: {
+        level: "info",
+        writePromptFiles: false,
+      },
+    },
+    "config.yaml",
+  );
+
+  assert.equal(config.provider.model, undefined);
+});
+
+test("validateProjectConfig accepts optional model string", async () => {
+  await withTempDir(async (tempDir) => {
+    const repoDir = path.join(tempDir, "repo");
+    await mkdir(repoDir, { recursive: true });
+
+    const config = await validateProjectConfig(
+      {
+        name: "comm-service",
+        repoPath: repoDir,
+        model: "claude-opus-4-5",
+      },
+      "projects/comm-service.yaml",
+    );
+
+    assert.equal(config.model, "claude-opus-4-5");
+  });
+});
+
+test("validateProjectConfig rejects non-string model", async () => {
+  await withTempDir(async (tempDir) => {
+    const repoDir = path.join(tempDir, "repo");
+    await mkdir(repoDir, { recursive: true });
+
+    await assert.rejects(
+      async () =>
+        validateProjectConfig(
+          {
+            name: "comm-service",
+            repoPath: repoDir,
+            model: 42 as unknown,
+          },
+          "projects/comm-service.yaml",
+        ),
+      (err: unknown) => {
+        const error = err as ConfigValidationError;
+        return error instanceof ConfigValidationError && error.field === "model";
+      },
+    );
+  });
+});
+
+test("validateProjectConfig accepts sync.targets with valid string paths", async () => {
+  await withTempDir(async (tempDir) => {
+    const repoDir = path.join(tempDir, "repo");
+    await mkdir(repoDir, { recursive: true });
+
+    const config = await validateProjectConfig(
+      {
+        name: "comm-service",
+        repoPath: repoDir,
+        sync: {
+          targetDir: ".github/spec-forge",
+          targets: {
+            skills: ".github/prompts",
+            instructions: ".github",
+          },
+        },
+      },
+      "projects/comm-service.yaml",
+    );
+
+    assert.equal(config.sync?.targets?.skills, ".github/prompts");
+    assert.equal(config.sync?.targets?.instructions, ".github");
+    assert.equal(config.sync?.targets?.knowledge, undefined);
+  });
+});
+
+test("validateProjectConfig rejects non-string sync.targets.skills", async () => {
+  await withTempDir(async (tempDir) => {
+    const repoDir = path.join(tempDir, "repo");
+    await mkdir(repoDir, { recursive: true });
+
+    await assert.rejects(
+      async () =>
+        validateProjectConfig(
+          {
+            name: "comm-service",
+            repoPath: repoDir,
+            sync: {
+              targets: {
+                skills: 123 as unknown,
+              },
+            },
+          },
+          "projects/comm-service.yaml",
+        ),
+      (err: unknown) => {
+        const error = err as ConfigValidationError;
+        return error instanceof ConfigValidationError && error.field === "sync.targets.skills";
+      },
+    );
+  });
+});
+
 // ===== loadConfig Integration Tests =====
 
 test("loadConfig applies project provider override over global provider.active", async () => {

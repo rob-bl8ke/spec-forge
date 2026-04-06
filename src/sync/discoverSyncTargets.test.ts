@@ -244,4 +244,38 @@ describe("discoverSyncTargets", () => {
       assert.ok(targets[0].targetPath.includes("skills"));
     });
   });
+
+  test("per-asset-type targets override targetDir for that type only", async () => {
+    await withTempDir(async (tempDir) => {
+      const rootDir = tempDir;
+      const repoPath = path.join(tempDir, "repo");
+      await mkdir(path.join(rootDir, "skills"), { recursive: true });
+      await mkdir(path.join(rootDir, "instructions"), { recursive: true });
+      await mkdir(repoPath, { recursive: true });
+
+      await writeFile(path.join(rootDir, "skills", "my-skill.md"), "skill content", "utf8");
+      await writeFile(path.join(rootDir, "instructions", "my-inst.md"), "inst content", "utf8");
+
+      const targets = await discoverSyncTargets({
+        rootDir,
+        repoPath,
+        targetDir: ".github/spec-forge",
+        targets: { skills: ".github/skills" },
+        assets: {
+          skills: ["my-skill"],
+          instructions: ["my-inst"],
+        },
+      });
+
+      const skillTarget = targets.find((t) => t.assetType === "skills")!;
+      const instTarget = targets.find((t) => t.assetType === "instructions")!;
+
+      // skills uses the per-type override
+      assert.ok(skillTarget.targetPath.includes(path.join(".github", "skills")));
+      assert.ok(!skillTarget.targetPath.includes(path.join(".github", "spec-forge")));
+
+      // instructions falls back to targetDir
+      assert.ok(instTarget.targetPath.includes(path.join(".github", "spec-forge")));
+    });
+  });
 });

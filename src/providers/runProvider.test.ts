@@ -69,3 +69,107 @@ test("runProviderCall fails fast with named error when provider unavailable", as
     (error: unknown) => error instanceof ProviderUnavailableError && /claude/.test(error.message),
   );
 });
+
+test("runProviderCall threads project model into the request", async () => {
+  let capturedRequest: ProviderRequest | undefined;
+
+  const adapter: ProviderAdapter = {
+    name: "copilot",
+    async isAvailable(): Promise<boolean> { return true; },
+    async generate(input: ProviderRequest): Promise<ProviderResponse> {
+      capturedRequest = input;
+      return { provider: "copilot", stdout: "", stderr: "", exitCode: 0, durationMs: 1, timedOut: false };
+    },
+  };
+
+  const contextWithProjectModel: ConfigContext = {
+    ...context,
+    resolvedProject: {
+      name: "comm-service",
+      repoPath: "../communication-service",
+      provider: "copilot",
+      providerTimeoutMs: 120000,
+      logging: { level: "info", writePromptFiles: false },
+      model: "claude-opus-4-5",
+    },
+  };
+
+  await runProviderCall(adapter, request, contextWithProjectModel);
+
+  assert.equal(capturedRequest?.model, "claude-opus-4-5");
+});
+
+test("runProviderCall falls back to global model when project has no model", async () => {
+  let capturedRequest: ProviderRequest | undefined;
+
+  const adapter: ProviderAdapter = {
+    name: "copilot",
+    async isAvailable(): Promise<boolean> { return true; },
+    async generate(input: ProviderRequest): Promise<ProviderResponse> {
+      capturedRequest = input;
+      return { provider: "copilot", stdout: "", stderr: "", exitCode: 0, durationMs: 1, timedOut: false };
+    },
+  };
+
+  const contextWithGlobalModel: ConfigContext = {
+    ...context,
+    globalConfig: {
+      provider: { active: "copilot", timeoutMs: 120000, model: "gpt-4.1" },
+      logging: { level: "info", writePromptFiles: false },
+    },
+  };
+
+  await runProviderCall(adapter, request, contextWithGlobalModel);
+
+  assert.equal(capturedRequest?.model, "gpt-4.1");
+});
+
+test("runProviderCall omits model from request when neither project nor global specifies it", async () => {
+  let capturedRequest: ProviderRequest | undefined;
+
+  const adapter: ProviderAdapter = {
+    name: "copilot",
+    async isAvailable(): Promise<boolean> { return true; },
+    async generate(input: ProviderRequest): Promise<ProviderResponse> {
+      capturedRequest = input;
+      return { provider: "copilot", stdout: "", stderr: "", exitCode: 0, durationMs: 1, timedOut: false };
+    },
+  };
+
+  await runProviderCall(adapter, request, context);
+
+  assert.equal(capturedRequest?.model, undefined);
+});
+
+test("runProviderCall project model takes precedence over global model", async () => {
+  let capturedRequest: ProviderRequest | undefined;
+
+  const adapter: ProviderAdapter = {
+    name: "copilot",
+    async isAvailable(): Promise<boolean> { return true; },
+    async generate(input: ProviderRequest): Promise<ProviderResponse> {
+      capturedRequest = input;
+      return { provider: "copilot", stdout: "", stderr: "", exitCode: 0, durationMs: 1, timedOut: false };
+    },
+  };
+
+  const contextWithBothModels: ConfigContext = {
+    ...context,
+    globalConfig: {
+      provider: { active: "copilot", timeoutMs: 120000, model: "gpt-4.1" },
+      logging: { level: "info", writePromptFiles: false },
+    },
+    resolvedProject: {
+      name: "comm-service",
+      repoPath: "../communication-service",
+      provider: "copilot",
+      providerTimeoutMs: 120000,
+      logging: { level: "info", writePromptFiles: false },
+      model: "o3",
+    },
+  };
+
+  await runProviderCall(adapter, request, contextWithBothModels);
+
+  assert.equal(capturedRequest?.model, "o3");
+});

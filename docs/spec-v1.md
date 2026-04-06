@@ -291,7 +291,11 @@ assets:
     - event-driven-guidelines
 
 sync:
-  targetDir: .github/spec-forge
+  targetDir: .github/spec-forge   # fallback base for all asset types
+  targets:                          # optional per-type overrides
+    skills: .github/prompts         # skills land here instead of targetDir
+    instructions: .github           # instructions land here instead of targetDir
+    # knowledge omitted → falls back to targetDir
   previewByDefault: true
   overwritePolicy: prompt
 
@@ -379,12 +383,6 @@ sync:
   overwritePolicy: prompt
 
 harvest:
-  enabled: true
-  commitWindow: 30
-  excludeAuthors: []
-  includeExtensions:
-    - .ts
-    - .js
   minChangedLines: 10
   maxChangedLines: 400
   probes:
@@ -777,7 +775,7 @@ If validation fails:
 
 ## 11.1 Target path
 
-Sync into repo:
+Default sync target layout inside the repo:
 
 ```text
 <repo>/.github/spec-forge/
@@ -785,6 +783,26 @@ Sync into repo:
   instructions/
   knowledge/
 ```
+
+Controlled by `sync.targetDir` in the project config (default: `.github/spec-forge`). A flat fallback, all asset types share the same base path.
+
+Per-asset-type overrides via `sync.targets` take precedence over `targetDir` for that type:
+
+```yaml
+sync:
+  targetDir: .github/spec-forge  # fallback for any type not listed below
+  targets:
+    skills: .github/prompts        # override for skills only
+    instructions: .github          # override for instructions only
+    # knowledge omitted → falls back to targetDir
+```
+
+Resolved path per asset: `<repoPath>/<effectiveTargetDir>/<assetType>/<id>.md`
+
+When to use `targets`:
+- Your AI tool reads skills/instructions from a specific path that differs from the default namespace (e.g., Copilot expects `.github/`, Claude expects `.claude/`)
+- You want skills in one location and instructions in another
+- You are publishing to multiple tool conventions from one project config
 
 ## 11.2 Metadata header
 
