@@ -41,7 +41,8 @@ export class ClaudeAdapter implements ProviderAdapter {
       let stdout = "";
       let stderr = "";
 
-      const child = this.spawnFn("claude", [], {
+      const modelArgs = request.model ? ["--model", request.model] : [];
+      const child = this.spawnFn("claude", [...modelArgs], {
         cwd: request.workingDirectory,
         stdio: "pipe",
       });

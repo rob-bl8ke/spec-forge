@@ -4,6 +4,7 @@ export interface ProviderRequest {
   prompt: string;
   workingDirectory?: string;
   timeoutMs: number;
+  model?: string;
 }
 
 export interface ProviderResponse {

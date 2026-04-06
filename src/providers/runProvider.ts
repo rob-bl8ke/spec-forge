@@ -21,11 +21,14 @@ export async function runProviderCall(
     throw new ProviderUnavailableError(adapter.name);
   }
 
+  const model = context.resolvedProject?.model ?? context.globalConfig.provider.model;
+
   return executeWithRetry({
     adapter,
     request: {
       ...request,
       workingDirectory: resolveWorkingDir(context),
+      ...(model !== undefined ? { model } : {}),
     },
   });
 }

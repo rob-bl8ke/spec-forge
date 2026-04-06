@@ -166,6 +166,7 @@ type ProviderRequest = {
   prompt: string;
   workingDirectory?: string;
   timeoutMs: number;
+  model?: string;
 };
 ```
 
@@ -228,15 +229,17 @@ Global config example:
 provider:
   active: copilot
   timeoutMs: 120000
+  model: gpt-4.1
 ```
 
-Project config can override active provider:
+Project config can override active provider and model:
 
 ```yaml
 provider: claude
+model: claude-opus-4-5
 ```
 
-Project-level value wins.
+Project-level values win. Model resolution order: project `model` → global `provider.model` → adapter default.
 
 ## 6.11 MVP provider invocation behavior
 
@@ -259,6 +262,7 @@ What is fixed is:
 provider:
   active: copilot
   timeoutMs: 120000
+  model: gpt-4.1  # optional; adapter default used if omitted
 
 logging:
   level: info
@@ -272,6 +276,7 @@ name: comm-service
 repoPath: ../communication-service
 
 provider: copilot
+model: gpt-4.1  # optional; overrides global provider.model
 
 workflowDefaults:
   defaultWorkflow: spec-to-tasks

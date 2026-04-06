@@ -95,7 +95,31 @@ harvest:
     - logging
 ```
 
-## 2.4 Project repoPath validation (IMPORTANT)
+## 2.4 Configuring the AI model
+
+You can control which model each provider uses at two levels:
+
+**Global default** (`config.yaml`):
+
+```yaml
+provider:
+  active: copilot
+  timeoutMs: 120000
+  model: gpt-4.1
+```
+
+**Per-project override** (`projects/comm-service.yaml`):
+
+```yaml
+provider: claude
+model: claude-opus-4-5
+```
+
+Resolution order: **project `model`** → **global `provider.model`** → adapter default (`gpt-4.1` for Copilot).
+
+If `model` is omitted at both levels, the adapter uses its built-in default.
+
+## 2.5 Project repoPath validation (IMPORTANT)
 
 When you initialize a new project, the `repoPath` field in your project YAML (e.g. `projects/comm-service.yaml`) tells Spec Forge where your actual codebase lives, **relative to the workspace root**.
 

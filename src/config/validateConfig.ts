@@ -74,6 +74,7 @@ export function validateGlobalConfig(raw: unknown, filePath: string): GlobalConf
     provider: {
       active: readProvider(provider.active, "provider.active", filePath),
       timeoutMs: readRequiredNumber(provider, "timeoutMs", filePath),
+      model: typeof provider.model === "string" ? provider.model : undefined,
     },
     logging: {
       level: readRequiredString(logging, "level", filePath),
@@ -89,6 +90,10 @@ export async function validateProjectConfig(raw: unknown, filePath: string, root
 
   if (root.provider !== undefined) {
     readProvider(root.provider, "provider", filePath);
+  }
+
+  if (root.model !== undefined && typeof root.model !== "string") {
+    throw new ConfigValidationError(filePath, "model", "must be a string.");
   }
 
   const resolvedRepoPath = path.resolve(rootDir ?? path.dirname(filePath), repoPath);

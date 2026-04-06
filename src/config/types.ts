@@ -4,6 +4,7 @@ export interface GlobalConfig {
   provider: {
     active: ProviderName;
     timeoutMs: number;
+    model?: string;
   };
   logging: {
     level: string;
@@ -15,6 +16,7 @@ export interface ProjectConfig {
   name: string;
   repoPath: string;
   provider?: ProviderName;
+  model?: string;
   workflowDefaults?: {
     defaultWorkflow?: string;
   };

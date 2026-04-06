@@ -39,13 +39,12 @@ export class CopilotAdapter implements ProviderAdapter {
     command: string,
     args: string[],
     request: ProviderRequest,
-  ): Promise<{ response: ProviderResponse; spawnErrorCode?: string }> {
+  ): Promise<ProviderResponse> {
     const startedAt = Date.now();
 
-    return new Promise<{ response: ProviderResponse; spawnErrorCode?: string }>((resolve) => {
+    return new Promise<ProviderResponse>((resolve) => {
       let stdout = "";
       let stderr = "";
-      let spawnErrorCode: string | undefined;
 
       const child = this.spawnFn(command, args, {
         cwd: request.workingDirectory,
@@ -62,31 +61,24 @@ export class CopilotAdapter implements ProviderAdapter {
 
       child.on("error", (error) => {
         const nodeError = error as NodeJS.ErrnoException;
-        spawnErrorCode = nodeError.code;
         resolve({
-          response: {
-            provider: this.name,
-            stdout,
-            stderr: `${stderr}${error.message}`,
-            exitCode: 1,
-            durationMs: Date.now() - startedAt,
-            timedOut: false,
-          },
-          spawnErrorCode,
+          provider: this.name,
+          stdout,
+          stderr: `${stderr}${error.message}`,
+          exitCode: nodeError.code === "ENOENT" ? 127 : 1,
+          durationMs: Date.now() - startedAt,
+          timedOut: false,
         });
       });
 
       child.on("close", (code) => {
         resolve({
-          response: {
-            provider: this.name,
-            stdout,
-            stderr,
-            exitCode: code ?? 1,
-            durationMs: Date.now() - startedAt,
-            timedOut: false,
-          },
-          spawnErrorCode,
+          provider: this.name,
+          stdout,
+          stderr,
+          exitCode: code ?? 1,
+          durationMs: Date.now() - startedAt,
+          timedOut: false,
         });
       });
     });
@@ -109,31 +101,13 @@ export class CopilotAdapter implements ProviderAdapter {
 
   async isAvailable(): Promise<boolean> {
     const { command, prefix } = this.resolveCopilotCommand();
-    const standaloneAvailable = await this.checkCommandAvailable(command, [...prefix, "--help"]);
-    if (standaloneAvailable) {
-      return true;
-    }
-
-    return this.checkCommandAvailable("gh", ["copilot", "--", "--help"]);
+    return this.checkCommandAvailable(command, [...prefix, "--help"]);
   }
 
   async generate(request: ProviderRequest): Promise<ProviderResponse> {
     const { command, prefix } = this.resolveCopilotCommand();
-    const standaloneArgs = [...prefix, "--prompt", request.prompt, "--model", "gpt-4.1"];
-    const standaloneResult = await this.runCommand(command, standaloneArgs, request);
-    if (standaloneResult.spawnErrorCode !== "ENOENT") {
-      return standaloneResult.response;
-    }
-
-    const ghFallbackArgs = [
-      "copilot",
-      "--",
-      "--prompt",
-      request.prompt,
-      "--model",
-      "gpt-4.1",
-    ];
-    const ghResult = await this.runCommand("gh", ghFallbackArgs, request);
-    return ghResult.response;
+    const args = [...prefix, "--prompt", request.prompt, "--model", request.model ?? "gpt-4.1"];
+    const result = await this.runCommand(command, args, request);
+    return result;
   }
 }

@@ -52,11 +52,14 @@ spec-forge/
 provider:
   active: copilot
   timeoutMs: 120000
+  model: gpt-4.1
 
 logging:
   level: info
   writePromptFiles: true
 ```
+
+The `model` field is optional. If omitted, the adapter falls back to its built-in default (`gpt-4.1` for Copilot). Setting it here means all projects share the same model unless a project overrides it.
 
 ## 1.3 Add the workflow
 
@@ -261,13 +264,14 @@ harvest:
 
 ## I immediately enrich it
 
-I edit it to use my assets and exclude myself from harvests.
+I edit it to use my assets, exclude myself from harvests, and pin the model for this project.
 
 ```yaml
 name: comm-service
 repoPath: ../communication-service
 
 provider: copilot
+model: gpt-4.1
 
 workflowDefaults:
   defaultWorkflow: spec-to-tasks
