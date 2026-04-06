@@ -82,7 +82,7 @@ export function validateGlobalConfig(raw: unknown, filePath: string): GlobalConf
   };
 }
 
-export async function validateProjectConfig(raw: unknown, filePath: string): Promise<ProjectConfig> {
+export async function validateProjectConfig(raw: unknown, filePath: string, rootDir?: string): Promise<ProjectConfig> {
   const root = asRecord(raw, filePath);
   const name = readRequiredString(root, "name", filePath);
   const repoPath = readRequiredString(root, "repoPath", filePath);
@@ -91,7 +91,7 @@ export async function validateProjectConfig(raw: unknown, filePath: string): Pro
     readProvider(root.provider, "provider", filePath);
   }
 
-  const resolvedRepoPath = path.resolve(path.dirname(filePath), repoPath);
+  const resolvedRepoPath = path.resolve(rootDir ?? path.dirname(filePath), repoPath);
   try {
     await access(resolvedRepoPath);
   } catch {

@@ -71,7 +71,7 @@ export async function loadConfig(input: LoadConfigInput = {}): Promise<ConfigCon
     );
   }
 
-  const projectConfig = await validateProjectConfig(projectRaw, projectConfigPath);
+  const projectConfig = await validateProjectConfig(projectRaw, projectConfigPath, rootDir);
   const resolvedProvider = projectConfig.provider ?? globalConfig.provider.active;
 
   const resolvedProject: ResolvedProjectConfig = {

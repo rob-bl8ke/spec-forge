@@ -1,4 +1,5 @@
 import { spawn, type SpawnOptions } from "node:child_process";
+import { dirname, join } from "node:path";
 import { EventEmitter } from "node:events";
 import type { ProviderAdapter, ProviderRequest, ProviderResponse } from "./ProviderAdapter";
 
@@ -91,8 +92,24 @@ export class CopilotAdapter implements ProviderAdapter {
     });
   }
 
+  /**
+   * On Windows, `spawn('copilot', ...)` fails with ENOENT because Node cannot
+   * execute `.cmd` wrappers without a shell. Instead, invoke Node.js directly
+   * with the copilot npm-loader that the `.cmd` wrapper delegates to, using
+   * the same Node.js binary that is running this process.
+   */
+  private resolveCopilotCommand(): { command: string; prefix: string[] } {
+    if (process.platform === "win32") {
+      const nodeDir = dirname(process.execPath);
+      const loaderPath = join(nodeDir, "node_modules", "@github", "copilot", "npm-loader.js");
+      return { command: process.execPath, prefix: [loaderPath] };
+    }
+    return { command: "copilot", prefix: [] };
+  }
+
   async isAvailable(): Promise<boolean> {
-    const standaloneAvailable = await this.checkCommandAvailable("copilot", ["--help"]);
+    const { command, prefix } = this.resolveCopilotCommand();
+    const standaloneAvailable = await this.checkCommandAvailable(command, [...prefix, "--help"]);
     if (standaloneAvailable) {
       return true;
     }
@@ -101,8 +118,9 @@ export class CopilotAdapter implements ProviderAdapter {
   }
 
   async generate(request: ProviderRequest): Promise<ProviderResponse> {
-    const standaloneArgs = ["--prompt", request.prompt, "--allow-all-tools", "--silent"];
-    const standaloneResult = await this.runCommand("copilot", standaloneArgs, request);
+    const { command, prefix } = this.resolveCopilotCommand();
+    const standaloneArgs = [...prefix, "--prompt", request.prompt, "--model", "gpt-4.1"];
+    const standaloneResult = await this.runCommand(command, standaloneArgs, request);
     if (standaloneResult.spawnErrorCode !== "ENOENT") {
       return standaloneResult.response;
     }
@@ -112,8 +130,8 @@ export class CopilotAdapter implements ProviderAdapter {
       "--",
       "--prompt",
       request.prompt,
-      "--allow-all-tools",
-      "--silent",
+      "--model",
+      "gpt-4.1",
     ];
     const ghResult = await this.runCommand("gh", ghFallbackArgs, request);
     return ghResult.response;
