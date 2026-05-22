@@ -60,7 +60,7 @@ test("loadConfig applies project provider override over global provider.active",
 
     await writeFile(
       path.join(projectsDir, "comm-service.yaml"),
-      "name: comm-service\nprovider: claude\nrepoPath: ../repo\nsync:\n  overwritePolicy: prompt\n",
+      "name: comm-service\nprovider: claude\nrepoPath: ./repo\nsync:\n  overwritePolicy: prompt\n",
       "utf8",
     );
 

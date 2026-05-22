@@ -24,6 +24,10 @@ function inferProjectName(input: InitializeContextInput): string | undefined {
 }
 
 export async function initializeCommandContext(input: InitializeContextInput): Promise<ConfigContext | undefined> {
+  if (input.commandName === "init") {
+    return undefined;
+  }
+
   const projectName = inferProjectName(input);
   const context = await loadConfig({ cwd: input.cwd, projectName });
   currentContext = context;

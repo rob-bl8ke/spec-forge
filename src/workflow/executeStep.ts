@@ -2,7 +2,7 @@ import * as path from "path";
 import { readFile } from "node:fs/promises";
 import { StepDefinition } from "./types";
 import {
-  resolvePrompt,
+  resolvePromptTemplateString,
   buildArtifactVariables,
   type PromptVariables,
 } from "./resolvePrompt";
@@ -80,11 +80,8 @@ export async function executeStep(
     const artifactVariables = buildArtifactVariables(artifactFileContent);
     const allVariables: PromptVariables = { ...coreVariables, ...artifactVariables };
 
-    // Read prompt template from disk and resolve variables
-    const promptTemplatePath = path.isAbsolute(step.prompt)
-      ? step.prompt
-      : path.join(specForgeRoot, step.prompt);
-    const resolvedPrompt = await resolvePrompt(promptTemplatePath, allVariables);
+    // Read prompt template from YAML and resolve variables
+    const resolvedPrompt = resolvePromptTemplateString(step.prompt, allVariables, `step "${step.id}"`);
 
     // Step 2: Assemble artifact context (from input files)
     let artifactContext = "";

@@ -1,5 +1,4 @@
 import { spawn, type SpawnOptions } from "node:child_process";
-import { dirname, join } from "node:path";
 import { EventEmitter } from "node:events";
 import type { ProviderAdapter, ProviderRequest, ProviderResponse } from "./ProviderAdapter";
 
@@ -26,7 +25,7 @@ export class CopilotAdapter implements ProviderAdapter {
     this.spawnFn = spawnFn;
   }
 
-  private async checkCommandAvailable(command: string, args: string[]): Promise<boolean> {
+  private checkCommandAvailable(command: string, args: string[]): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
       const child = this.spawnFn(command, args, { stdio: "pipe" });
 
@@ -35,7 +34,7 @@ export class CopilotAdapter implements ProviderAdapter {
     });
   }
 
-  private async runCommand(
+  private runCommand(
     command: string,
     args: string[],
     request: ProviderRequest,
@@ -48,7 +47,7 @@ export class CopilotAdapter implements ProviderAdapter {
 
       const child = this.spawnFn(command, args, {
         cwd: request.workingDirectory,
-        stdio: "pipe",
+        stdio: ["ignore", "pipe", "pipe"],
       });
 
       child.stdout?.on("data", (chunk) => {
@@ -84,30 +83,22 @@ export class CopilotAdapter implements ProviderAdapter {
     });
   }
 
-  /**
-   * On Windows, `spawn('copilot', ...)` fails with ENOENT because Node cannot
-   * execute `.cmd` wrappers without a shell. Instead, invoke Node.js directly
-   * with the copilot npm-loader that the `.cmd` wrapper delegates to, using
-   * the same Node.js binary that is running this process.
-   */
-  private resolveCopilotCommand(): { command: string; prefix: string[] } {
-    if (process.platform === "win32") {
-      const nodeDir = dirname(process.execPath);
-      const loaderPath = join(nodeDir, "node_modules", "@github", "copilot", "npm-loader.js");
-      return { command: process.execPath, prefix: [loaderPath] };
-    }
-    return { command: "copilot", prefix: [] };
-  }
-
   async isAvailable(): Promise<boolean> {
-    const { command, prefix } = this.resolveCopilotCommand();
-    return this.checkCommandAvailable(command, [...prefix, "--help"]);
+    const standalone = await this.checkCommandAvailable("copilot", ["--help"]);
+    if (standalone) return true;
+
+    return this.checkCommandAvailable("gh", ["copilot", "--", "--help"]);
   }
 
   async generate(request: ProviderRequest): Promise<ProviderResponse> {
-    const { command, prefix } = this.resolveCopilotCommand();
-    const args = [...prefix, "--prompt", request.prompt, "--model", request.model ?? "gpt-4.1"];
-    const result = await this.runCommand(command, args, request);
+    const promptArgs = ["--prompt", request.prompt, "-s", "--no-ask-user"];
+
+    const result = await this.runCommand("copilot", promptArgs, request);
+
+    if (result.exitCode === 127) {
+      return this.runCommand("gh", ["copilot", "--", ...promptArgs], request);
+    }
+
     return result;
   }
 }

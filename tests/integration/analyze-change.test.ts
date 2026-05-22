@@ -41,7 +41,7 @@ async function setupConfig(rootDir: string): Promise<void> {
     path.join(projectsDir, "comm-service.yaml"),
     [
       "name: comm-service",
-      "repoPath: ../repo",
+      "repoPath: ./repo",
       "sync:",
       "  overwritePolicy: prompt",
     ].join("\n") + "\n",

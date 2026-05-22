@@ -431,7 +431,7 @@ test("loadConfig applies project provider override over global provider.active",
     await writeProjectConfig(
       tempDir,
       "comm-service",
-      "name: comm-service\nprovider: claude\nrepoPath: ../repo\nsync:\n  overwritePolicy: prompt\n",
+      "name: comm-service\nprovider: claude\nrepoPath: ./repo\nsync:\n  overwritePolicy: prompt\n",
     );
 
     const context = await loadConfig({ cwd: tempDir, projectName: "comm-service" });
@@ -455,7 +455,7 @@ test("loadConfig uses global provider when project has no provider override", as
     await writeProjectConfig(
       tempDir,
       "comm-service",
-      "name: comm-service\nrepoPath: ../repo\nsync:\n  overwritePolicy: prompt\n",
+      "name: comm-service\nrepoPath: ./repo\nsync:\n  overwritePolicy: prompt\n",
     );
 
     const context = await loadConfig({ cwd: tempDir, projectName: "comm-service" });

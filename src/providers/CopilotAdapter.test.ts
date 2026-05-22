@@ -104,7 +104,7 @@ test("generate uses standalone copilot CLI with prompt flag and returns populate
   });
 
   assert.equal(receivedCommand, "copilot");
-  assert.deepEqual(receivedArgs, ["--prompt", "Explain retries", "--allow-all-tools", "--silent"]);
+  assert.deepEqual(receivedArgs, ["--prompt", "Explain retries", "-s", "--no-ask-user"]);
   assert.equal(receivedCwd, "C:/repo");
   assert.equal(response.provider, "copilot");
   assert.equal(response.stdout, "hello");
@@ -163,7 +163,7 @@ test("generate falls back to gh copilot wrapper when standalone command is missi
   assert.equal(calls.length, 2);
   assert.equal(calls[0].command, "copilot");
   assert.equal(calls[1].command, "gh");
-  assert.deepEqual(calls[1].args, ["copilot", "--", "--prompt", "fallback test", "--allow-all-tools", "--silent"]);
+  assert.deepEqual(calls[1].args, ["copilot", "--", "--prompt", "fallback test", "-s", "--no-ask-user"]);
   assert.equal(response.exitCode, 0);
   assert.equal(response.stdout, "ok from gh wrapper");
 });
